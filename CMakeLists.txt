@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 4.2)
-project(untitled)
+project(GeneticAlgorithmAI)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(untitled
+add_executable(GeneticAlgorithmAI
         main.cpp
         CSVParser.cpp
         GeneticAlgorithm.cpp
