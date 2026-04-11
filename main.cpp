@@ -1,11 +1,17 @@
 #include "CSVParser.h"
 #include "GeneticAlgorithm.h"
+
 #include <vector>
-#include <iostream>
+#include <iostream>  // Add this line to fix the 'cerr' and 'endl' errors
 
 int main() {
     std::vector<Class> classes = loadClasses("classes_demand.csv");
     std::vector<Room> rooms = loadRooms("rooms_pool.csv");
+
+    if (classes.empty() || rooms.empty()) {
+        std::cout << "Failed to load data files." << std::endl;
+        return -1;
+    }
 
     std::vector<Individual> population;
     int populationSize = 100;
@@ -23,6 +29,10 @@ int main() {
     }
     std::cout << std::endl;
     // ---------------------------
+    // Calculate fitness for the very first random schedule
+    double score = calculateFitness(population[0], classes, rooms);
+
+    std::cout << "Initial Random Schedule Fitness: " << score << std::endl;
 
     return 0;
 }
