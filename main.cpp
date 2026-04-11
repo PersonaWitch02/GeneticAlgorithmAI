@@ -5,6 +5,7 @@ using namespace std;
 
 int main() {
 
+    //note: to get the files to open, you must move the CSV files to cmake-build-debug folder that is generated.
 
     vector<Classes> classesVector = parseClassesCSV("classes_demand.csv");
 
