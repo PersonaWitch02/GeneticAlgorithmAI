@@ -78,3 +78,88 @@ double calculateFitness(Individual& ind, const std::vector<Class>& classes, cons
     ind.fitness = 1.0 / (1.0 + hardViolations + (softPenalty / 1000000.0));
     return ind.fitness;
 }
+
+std::vector<int> createDomain(std::vector<Room> rooms) {
+    std::vector<int> roomIDPool;
+
+    for (Room room : rooms) {
+        roomIDPool.push_back(room.id);
+    }
+
+    return roomIDPool;
+}
+
+//GA
+Individual geneticAlgo( int populationSize, int tournamentSize, double crossoverRate, double mutationRate, int maximumGeneration,
+                         std::vector<int> &roomIDPool, std::vector<Individual> population) {
+
+    using namespace std;
+    //Init. pop.
+    //Eval. fit.
+
+    vector<Individual> newPopulation;
+
+    while (newPopulation.size() < populationSize) {
+        Individual parent1 = tournamentSelection(population, tournamentSize, crossoverRate);
+        Individual parent2 = tournamentSelection(population, tournamentSize, crossoverRate);
+
+         if ((rand()%1) < crossoverRate ) {
+            singlePointCrossOver(parent1, parent2, parent1.chromosome.size());
+         }
+
+        randomResettingMutation(parent1.chromosome, mutationRate, roomIDPool);
+        randomResettingMutation(parent2.chromosome, mutationRate, roomIDPool);
+
+
+
+    }
+
+}
+
+Individual tournamentSelection(std::vector<Individual> &population, int tournamentSize, double probability) {
+
+    const size_t populationSize = population.size();
+
+    Individual *tournamentSet[tournamentSize];
+
+    //selecting randoms for tournament set
+    for (int i=0; i<tournamentSize; i++) {
+        int randomIndividual = rand() % populationSize;
+
+        tournamentSet[i] = &population[randomIndividual];
+    }
+
+    //sorting the tournament set, lamba allows custom sort
+    std::sort(tournamentSet, tournamentSet + tournamentSize, [](Individual* a, Individual* b) {
+        return a->fitness > b->fitness;
+    });
+
+    double randomNumber = static_cast<double>(rand() % 1000)/1000.0;
+
+    if ( randomNumber < probability) {
+        return *tournamentSet[0];
+    }else {
+        int randomIndex = rand() % (tournamentSize-1);
+        return *tournamentSet[randomIndex+1];
+    }
+}
+
+
+void singlePointCrossOver(Individual &parent1, Individual &parent2, size_t length) {
+    int crossOverPoint = rand() % length;
+
+    for (int i = crossOverPoint; i<length; i++){
+        std::swap(parent1.chromosome[i], parent2.chromosome[i]);
+    }
+}
+
+void randomResettingMutation( std::vector<int> &chromosome, double mutationProbability, std::vector<int> &roomIDPool) {
+    for (int i = 0; i<chromosome.size(); i++) {
+        double randomNumber = static_cast<double>(rand() % 1000)/1000.0;
+
+        if (randomNumber<mutationProbability) {
+            int randomValue = roomIDPool[rand() % roomIDPool.size()];
+            chromosome[i] = randomValue;
+        }
+    }
+}

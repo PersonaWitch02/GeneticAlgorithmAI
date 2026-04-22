@@ -34,5 +34,7 @@ int main() {
 
     std::cout << "Initial Random Schedule Fitness: " << score << std::endl;
 
+    std::vector<int> roomIDPool = createDomain(rooms);
+
     return 0;
 }

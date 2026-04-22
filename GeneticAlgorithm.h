@@ -21,4 +21,18 @@ double calculateFitness(Individual& ind,
 
 bool isOverlapping(const Class& a, const Class& b);
 
+//generates a vector of room Ids to be used as domain
+std::vector<int> createDomain(std::vector<Room> rooms);
+
+//Genetic Algo using tournament selection and random resetting mutation
+Individual geneticAlgo( int populationSize, int tournamentSize, double crossoverRate, double mutationRate, int maximumGeneration,
+                        std::vector<int> &roomIDPool,std::vector<Individual> population);
+
+// population = P, tournamentSize = k, probability= p
+Individual tournamentSelection(std::vector<Individual> &population, int tournamentSize, double probability);
+
+void singlePointCrossOver(Individual &parent1, Individual &parent2, size_t length);
+
+void randomResettingMutation( std::vector<int> &chromosome, double mutationProbability, std::vector<int> &roomIDPool);
+
 #endif //UNTITLED_GENETICALGORITHM_H
