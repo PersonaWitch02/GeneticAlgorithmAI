@@ -29,7 +29,7 @@ Individual geneticAlgo( int populationSize, int tournamentSize, double crossover
                         std::vector<Individual> &population, const std::vector<Class> &classes, const std::vector<Room> &rooms);
 
 // population = P, tournamentSize = k, probability= p
-Individual tournamentSelection(std::vector<Individual> &population, int tournamentSize, double probability);
+Individual tournamentSelection(std::vector<Individual> &population, int tournamentSize, int tournamentProbability);
 
 void singlePointCrossOver(Individual &parent1, Individual &parent2, size_t length);
 

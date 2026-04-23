@@ -100,12 +100,16 @@ Individual geneticAlgo( int populationSize, int tournamentSize, double crossover
 
     vector<Individual> newPopulation;
 
+    int tournamentProbability = probability*1000;
+
    for (int i = 0; i < maximumGeneration; i++) {
        newPopulation.clear();
 
        while (newPopulation.size() < populationSize) {
-            Individual parent1 = tournamentSelection(population, tournamentSize, probability);
-            Individual parent2 = tournamentSelection(population, tournamentSize, probability);
+            // Individual parent1 = tournamentSelection(population, tournamentSize, probability);
+            // Individual parent2 = tournamentSelection(population, tournamentSize, probability);
+           Individual parent1 = tournamentSelection(population, tournamentSize, tournamentProbability);
+           Individual parent2 = tournamentSelection(population, tournamentSize, tournamentProbability);
 
              if (static_cast<double>(rand() % 1000)/1000.0 < crossoverRate ) {
                 singlePointCrossOver(parent1, parent2, parent1.chromosome.size());
@@ -134,7 +138,7 @@ Individual geneticAlgo( int populationSize, int tournamentSize, double crossover
     return  bestChromosome;
 }
 
-Individual tournamentSelection(std::vector<Individual> &population, int tournamentSize, double probability) {
+Individual tournamentSelection(std::vector<Individual> &population, int tournamentSize, int tournamentProbability) {
 
     const size_t populationSize = population.size();
 
@@ -152,9 +156,18 @@ Individual tournamentSelection(std::vector<Individual> &population, int tourname
         return a->fitness > b->fitness;
     });
 
-    double randomNumber = static_cast<double>(rand() % 1000)/1000.0;
+    // double randomNumber = static_cast<double>(rand() % 1000)/1000.0;
+    //
+    // if ( randomNumber < probability) {
+    //     return *tournamentSet[0];
+    // }else {
+    //     int randomIndex = rand() % (tournamentSize-1);
+    //     return *tournamentSet[randomIndex+1];
+    // }
 
-    if ( randomNumber < probability) {
+    int randomNumber = rand() % 1000;
+
+    if ( randomNumber < tournamentProbability) {
         return *tournamentSet[0];
     }else {
         int randomIndex = rand() % (tournamentSize-1);

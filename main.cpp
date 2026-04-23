@@ -4,7 +4,12 @@
 #include <vector>
 #include <iostream>  // Add this line to fix the 'cerr' and 'endl' errors
 
+#include <chrono>
+
 int main() {
+
+    const auto startTime = std::chrono::steady_clock::now();
+
     std::vector<Class> classes = loadClasses("classes_demand.csv");
     std::vector<Room> rooms = loadRooms("rooms_pool.csv");
 
@@ -35,10 +40,10 @@ int main() {
     std::cout << "Initial Random Schedule Fitness: " << score << std::endl;
 
     int tournamentSize = 5;
-    double crossoverRate = 0.45;
-    double mutationRate = 0.7;
-    int maximumGeneration = 7;
-    double probability = 0.15;
+    double crossoverRate = 0.80;
+    double mutationRate = 0.01;
+    int maximumGeneration = 500;
+    double probability = 0.85;
 
     using std::cout, std::endl;
 
@@ -51,10 +56,13 @@ int main() {
     Individual best = geneticAlgo(populationSize, tournamentSize, crossoverRate, mutationRate, maximumGeneration, probability,
         population, classes, rooms);
 
-    cout<<"Best"<< best.fitness<<endl;
+    cout<<"Best: "<< best.fitness<<endl;
     for (int i=0; i<best.chromosome.size(); i++) {
         cout<<best.chromosome[i]<<", ";
     }
+    cout<<endl;
 
+    const auto endtime = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - startTime);
+    cout<<"Time elapsed: "<<endtime.count()<< " seconds"<<endl;
     return 0;
 }
