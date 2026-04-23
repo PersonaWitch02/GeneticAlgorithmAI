@@ -90,30 +90,48 @@ std::vector<int> createDomain(std::vector<Room> rooms) {
 }
 
 //GA
-Individual geneticAlgo( int populationSize, int tournamentSize, double crossoverRate, double mutationRate, int maximumGeneration,
-                         std::vector<int> &roomIDPool, std::vector<Individual> population) {
-
+Individual geneticAlgo( int populationSize, int tournamentSize, double crossoverRate, double mutationRate, int maximumGeneration, double probability,
+                         std::vector<Individual> &population, const std::vector<Class> &classes, const std::vector<Room> &rooms) {
     using namespace std;
     //Init. pop.
     //Eval. fit.
 
+    std::vector<int> roomIDPool = createDomain(rooms);
+
     vector<Individual> newPopulation;
 
-    while (newPopulation.size() < populationSize) {
-        Individual parent1 = tournamentSelection(population, tournamentSize, crossoverRate);
-        Individual parent2 = tournamentSelection(population, tournamentSize, crossoverRate);
+   for (int i = 0; i < maximumGeneration; i++) {
+       newPopulation.clear();
 
-         if ((rand()%1) < crossoverRate ) {
-            singlePointCrossOver(parent1, parent2, parent1.chromosome.size());
+       while (newPopulation.size() < populationSize) {
+            Individual parent1 = tournamentSelection(population, tournamentSize, probability);
+            Individual parent2 = tournamentSelection(population, tournamentSize, probability);
+
+             if (static_cast<double>(rand() % 1000)/1000.0 < crossoverRate ) {
+                singlePointCrossOver(parent1, parent2, parent1.chromosome.size());
+             }
+
+            randomResettingMutation(parent1.chromosome, mutationRate, roomIDPool);
+            randomResettingMutation(parent2.chromosome, mutationRate, roomIDPool);
+
+            newPopulation.push_back(parent1);
+            newPopulation.push_back(parent2);
+        }
+
+        population = newPopulation;
+         for ( Individual &individual : population) {
+             calculateFitness(individual, classes, rooms);
          }
-
-        randomResettingMutation(parent1.chromosome, mutationRate, roomIDPool);
-        randomResettingMutation(parent2.chromosome, mutationRate, roomIDPool);
-
-
-
     }
 
+    Individual bestChromosome = population[0];
+    for ( Individual individual : population) {
+        if (individual.fitness > bestChromosome.fitness) {
+            bestChromosome = individual;
+        }
+    }
+
+    return  bestChromosome;
 }
 
 Individual tournamentSelection(std::vector<Individual> &population, int tournamentSize, double probability) {
@@ -158,7 +176,7 @@ void randomResettingMutation( std::vector<int> &chromosome, double mutationProba
         double randomNumber = static_cast<double>(rand() % 1000)/1000.0;
 
         if (randomNumber<mutationProbability) {
-            int randomValue = roomIDPool[rand() % roomIDPool.size()];
+            int randomValue = rand() % roomIDPool.size();
             chromosome[i] = randomValue;
         }
     }

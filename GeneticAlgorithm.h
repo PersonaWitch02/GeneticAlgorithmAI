@@ -25,8 +25,8 @@ bool isOverlapping(const Class& a, const Class& b);
 std::vector<int> createDomain(std::vector<Room> rooms);
 
 //Genetic Algo using tournament selection and random resetting mutation
-Individual geneticAlgo( int populationSize, int tournamentSize, double crossoverRate, double mutationRate, int maximumGeneration,
-                        std::vector<int> &roomIDPool,std::vector<Individual> population);
+Individual geneticAlgo( int populationSize, int tournamentSize, double crossoverRate, double mutationRate, int maximumGeneration, double probability,
+                        std::vector<Individual> &population, const std::vector<Class> &classes, const std::vector<Room> &rooms);
 
 // population = P, tournamentSize = k, probability= p
 Individual tournamentSelection(std::vector<Individual> &population, int tournamentSize, double probability);

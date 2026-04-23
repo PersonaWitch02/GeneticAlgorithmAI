@@ -34,7 +34,27 @@ int main() {
 
     std::cout << "Initial Random Schedule Fitness: " << score << std::endl;
 
-    std::vector<int> roomIDPool = createDomain(rooms);
+    int tournamentSize = 5;
+    double crossoverRate = 0.45;
+    double mutationRate = 0.7;
+    int maximumGeneration = 7;
+    double probability = 0.15;
+
+    using std::cout, std::endl;
+
+    cout<< "tournament size: "<<tournamentSize<<endl;
+    cout<< "crossover rate: "<<crossoverRate<<endl;
+    cout<< "mutation rate: "<<mutationRate<<endl;
+    cout<< "maximum generation: "<<maximumGeneration<<endl;
+    cout<< "probability: "<<probability<<endl;
+
+    Individual best = geneticAlgo(populationSize, tournamentSize, crossoverRate, mutationRate, maximumGeneration, probability,
+        population, classes, rooms);
+
+    cout<<"Best"<< best.fitness<<endl;
+    for (int i=0; i<best.chromosome.size(); i++) {
+        cout<<best.chromosome[i]<<", ";
+    }
 
     return 0;
 }
