@@ -99,8 +99,8 @@ Individual geneticAlgo(int populationSize, int tournamentSize, double crossoverR
 
     vector<Individual> newPopulation;
 
-    int tournamentProbability = probability * 1000;
-    int mutationRateScaled = mutationRate * 1000;
+    const int tournamentProbability = probability * 1000;
+    const int mutationRateScaled = mutationRate * 1000;
 
     for (int i = 0; i < maximumGeneration; i++) {
         newPopulation.clear();
@@ -108,8 +108,6 @@ Individual geneticAlgo(int populationSize, int tournamentSize, double crossoverR
         auto startGA = chrono::steady_clock::now();
 
         while (newPopulation.size() < populationSize) {
-            // Individual parent1 = tournamentSelection(population, tournamentSize, probability);
-            // Individual parent2 = tournamentSelection(population, tournamentSize, probability);
             Individual parent1 = tournamentSelection(population, tournamentSize, tournamentProbability);
             Individual parent2 = tournamentSelection(population, tournamentSize, tournamentProbability);
 
@@ -117,8 +115,6 @@ Individual geneticAlgo(int populationSize, int tournamentSize, double crossoverR
                 singlePointCrossOver(parent1, parent2, parent1.chromosome.size());
             }
 
-            // randomResettingMutation(parent1.chromosome, mutationRate, roomIDPool);
-            // randomResettingMutation(parent2.chromosome, mutationRate, roomIDPool);
             randomResettingMutation(parent1.chromosome, mutationRateScaled, rooms.size());
             randomResettingMutation(parent2.chromosome, mutationRateScaled, rooms.size());
 
@@ -139,7 +135,7 @@ Individual geneticAlgo(int populationSize, int tournamentSize, double crossoverR
     auto startGA = chrono::steady_clock::now();
 
     Individual bestChromosome = population[0];
-    for (Individual individual: population) {
+    for (const Individual &individual: population) {
         if (individual.fitness > bestChromosome.fitness) {
             bestChromosome = individual;
         }
@@ -160,7 +156,7 @@ Individual tournamentSelection(std::vector<Individual> &population, const int to
 
     //selecting randoms for tournament set
     for (int i = 0; i < tournamentSize; i++) {
-        int randomIndividual = rand() % populationSize;
+        const int randomIndividual = rand() % static_cast<int>(populationSize);
 
         tournamentSet[i] = &population[randomIndividual];
     }
@@ -170,28 +166,19 @@ Individual tournamentSelection(std::vector<Individual> &population, const int to
         return a->fitness > b->fitness;
     });
 
-    // double randomNumber = static_cast<double>(rand() % 1000)/1000.0;
-    //
-    // if ( randomNumber < probability) {
-    //     return *tournamentSet[0];
-    // }else {
-    //     int randomIndex = rand() % (tournamentSize-1);
-    //     return *tournamentSet[randomIndex+1];
-    // }
-
-    int randomNumber = rand() % 1000;
+    const int randomNumber = rand() % 1000;
 
     if (randomNumber < tournamentProbability) {
         return *tournamentSet[0];
     } else {
-        int randomIndex = rand() % (tournamentSize - 1);
+        const int randomIndex = rand() % (tournamentSize - 1);
         return *tournamentSet[randomIndex + 1];
     }
 }
 
 
 void singlePointCrossOver(Individual &parent1, Individual &parent2, const size_t length) {
-    int crossOverPoint = rand() % length;
+    const int crossOverPoint = rand() % static_cast<int>(length);
 
     for (int i = crossOverPoint; i < length; i++) {
         std::swap(parent1.chromosome[i], parent2.chromosome[i]);
@@ -201,10 +188,10 @@ void singlePointCrossOver(Individual &parent1, Individual &parent2, const size_t
 void randomResettingMutation(std::vector<int> &chromosome, const double mutationProbability, const size_t roomsSize) {
     for (int i = 0; i < chromosome.size(); i++) {
         // double randomNumber = static_cast<double>(rand() % 1000) / 1000.0;
-        double randomNumber = rand() % 1000;
+        const double randomNumber = rand() % 1000;
 
         if (randomNumber < mutationProbability) {
-            int randomValue = rand() % roomsSize;
+            const int randomValue = rand() % static_cast<int>(roomsSize);
             chromosome[i] = randomValue;
         }
     }
