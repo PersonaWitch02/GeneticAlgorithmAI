@@ -10,6 +10,10 @@
 std::chrono::milliseconds timeFitness(0);
 std::chrono::milliseconds timeGA(0);
 
+std::chrono::microseconds hcTime1(0);
+std::chrono::microseconds hcTime2(0);
+std::chrono::microseconds scTime(0);
+
 // Add this helper function at the top
 bool isOverlapping(const Class &a, const Class &b) {
     bool dayOverlap = false;
@@ -46,8 +50,12 @@ double calculateFitness(Individual &ind, const std::vector<Class> &classes, cons
     double softPenalty = 0.0;
     int numRooms = rooms.size();
 
+
+
     // Group by room index for overlap checking
     std::vector<std::vector<int> > roomAssignments(numRooms);
+
+    auto hcTime1Start = std::chrono::steady_clock::now();
 
     for (size_t i = 0; i < classes.size(); i++) {
         int roomIdx = ind.chromosome[i]; // This is now a safe index (0 to 126)
@@ -60,6 +68,10 @@ double calculateFitness(Individual &ind, const std::vector<Class> &classes, cons
         roomAssignments[roomIdx].push_back(i);
     }
 
+    hcTime1 += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - hcTime1Start);
+
+
+    auto hcTime2Start = std::chrono::steady_clock::now();
     // 2. HARD CONSTRAINT: Overlap
     for (int r = 0; r < numRooms; r++) {
         const auto &assigned = roomAssignments[r];
@@ -71,13 +83,16 @@ double calculateFitness(Individual &ind, const std::vector<Class> &classes, cons
             }
         }
     }
+    hcTime2 += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - hcTime2Start);
 
+    auto scTimeStart = std::chrono::steady_clock::now();
     // 3. SOFT CONSTRAINT: Distance
     for (size_t i = 0; i < classes.size() - 1; i++) {
         const Room &r1 = rooms[ind.chromosome[i]];
         const Room &r2 = rooms[ind.chromosome[i + 1]];
         softPenalty += std::sqrt(std::pow(r2.x - r1.x, 2) + std::pow(r2.y - r1.y, 2));
     }
+    scTime += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - scTimeStart);
 
     // Final Fitness Score
     ind.fitness = 1.0 / (1.0 + hardViolations + (softPenalty / 1000000.0));
@@ -145,6 +160,9 @@ Individual geneticAlgo(int populationSize, int tournamentSize, double crossoverR
 
     cout<<"GA took: "<<timeGA.count()/1000.0<<" seconds"<<endl;
     cout<<"Fit took: "<<timeFitness.count()/1000.0<<" seconds"<<endl;
+    cout<<"HC 1 took: "<<hcTime1.count()/1000000.0<<" seconds"<<endl;
+    cout<<"HC 2 took: "<<hcTime2.count()/1000000.0<<" seconds"<<endl;
+    cout<<"SC took: "<<scTime.count()/1000000.0<<" seconds"<<endl;
 
     return bestChromosome;
 }
@@ -180,13 +198,13 @@ Individual tournamentSelection(std::vector<Individual> &population, const int to
 void singlePointCrossOver(Individual &parent1, Individual &parent2, const size_t length) {
     const int crossOverPoint = rand() % static_cast<int>(length);
 
-    for (int i = crossOverPoint; i < length; i++) {
+    for (size_t i = crossOverPoint; i < length; i++) {
         std::swap(parent1.chromosome[i], parent2.chromosome[i]);
     }
 }
 
 void randomResettingMutation(std::vector<int> &chromosome, const double mutationProbability, const size_t roomsSize) {
-    for (int i = 0; i < chromosome.size(); i++) {
+    for (size_t i = 0; i < chromosome.size(); i++) {
         // double randomNumber = static_cast<double>(rand() % 1000) / 1000.0;
         const double randomNumber = rand() % 1000;
 
