@@ -2,8 +2,8 @@
 // Created by 13614 on 4/10/2026.
 //
 
-#ifndef UNTITLED_GENETICALGORITHM_H
-#define UNTITLED_GENETICALGORITHM_H
+#pragma once
+
 
 #include "DataStructures.h"
 #include <vector>
@@ -15,7 +15,7 @@ void initializePopulation(std::vector<Individual>& population,
                           const std::vector<Room>& rooms);
 
 // Section 3: Fitness Function (Hard & Soft Constraints)
-double calculateFitness(Individual& ind,
+void calculateFitness(Individual& ind,
                         const std::vector<Class>& classes,
                         const std::vector<Room>& rooms);
 
@@ -23,8 +23,7 @@ bool isOverlapping(const Class& a, const Class& b);
 
 
 //Genetic Algo using tournament selection and random resetting mutation
-Individual geneticAlgo( int populationSize, int tournamentSize, double crossoverRate, double mutationRate, int maximumGeneration, double probability,
-                        std::vector<Individual> &population, const std::vector<Class> &classes, const std::vector<Room> &rooms);
+Individual geneticAlgo( int populationSize, int tournamentSize, double crossoverRate, double mutationRate, int maximumGeneration, double probability);
 
 // population = P, tournamentSize = k, probability= p
 Individual tournamentSelection(std::vector<Individual> &population, int tournamentSize, int tournamentProbability);
@@ -33,4 +32,7 @@ void singlePointCrossOver(Individual &parent1, Individual &parent2, size_t lengt
 
 void randomResettingMutation( std::vector<int> &chromosome, double mutationProbability, size_t roomsSize);
 
-#endif //UNTITLED_GENETICALGORITHM_H
+uint8_t applyMask(std::string byte);
+
+bool haveCommonDay(const Class& a, const Class& b);
+

@@ -2,9 +2,9 @@
 // Created by 13614 on 4/10/2026.
 //
 
-#ifndef UNTITLED_DATASTRUCTURES_H
-#define UNTITLED_DATASTRUCTURES_H
+#pragma once
 
+#include <cstdint>
 #include <vector>
 #include <string>
 
@@ -30,4 +30,3 @@ struct Individual {
     Individual(int numClasses) : chromosome(numClasses), fitness(0.0) {}
 };
 
-#endif //UNTITLED_DATASTRUCTURES_H
