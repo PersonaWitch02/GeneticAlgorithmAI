@@ -11,6 +11,9 @@
 
 using namespace std;
 
+std::chrono::milliseconds timeFitness(0);
+std::chrono::milliseconds timeGA(0);
+
 long long iterations {0};
 int overlap = 0;
 int capacity = 0;
@@ -65,6 +68,7 @@ void randomBaselineGeneration(int populationSize) {
     cout << "Capacity violations: " << capacity << endl;
     cout << "Overlap violations:  " << overlap << endl;
     cout << "Hard violations: " << capacity+overlap << endl;
+    cout << "Fitness: "<<population[random].fitness <<endl;
     cout<<"**************************** \n";
 }
 
@@ -197,6 +201,8 @@ Individual geneticAlgo(int populationSize, int tournamentSize, double crossoverR
     for (int i = 0; i < maximumGeneration; i++) {
         newPopulation.clear();
 
+        auto startGA = chrono::steady_clock::now();
+
         //elitism
         //sorting population so we can find the best fitness
         sort(population.begin(), population.end(), [](const Individual &a, const Individual &b) {
@@ -225,19 +231,25 @@ Individual geneticAlgo(int populationSize, int tournamentSize, double crossoverR
         }
 
         population = newPopulation;
-
+        timeGA += chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - startGA);
+        auto startFit = chrono::steady_clock::now();
         for (Individual &individual: population) {
             calculateFitness(individual, classes, rooms);
         }
+        timeFitness += chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - startFit);
 
+        auto startGA2 = chrono::steady_clock::now();
         if (i % 100 == 0) {
             Individual &topFitness = population[0];
             for (Individual &ind: population)
                 if (ind.fitness > topFitness.fitness) topFitness = ind;
             cout << "Generation " << i << ", fitness: " << topFitness.fitness <<", violations: "<< capacity+overlap <<endl;
         }
+        timeGA += chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - startGA2);
+
     }
 
+    auto startGA = chrono::steady_clock::now();
     Individual bestChromosome = population[0];
     for (const Individual &individual: population) {
         if (individual.fitness > bestChromosome.fitness) {
@@ -246,11 +258,16 @@ Individual geneticAlgo(int populationSize, int tournamentSize, double crossoverR
     }
 
     calculateFitness(bestChromosome, classes, rooms);
+    timeGA += chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - startGA);
+
     cout << "Capacity violations: " << capacity << endl;
     cout << "Overlap violations:  " << overlap << endl;
     cout << "Hard violations: " << capacity+overlap << endl;
 
     cout<<"Difference between best and initial:"<< abs(bestChromosome.fitness - initialFitness)<<endl;
+
+    cout<<"GA took: "<<timeGA.count()/1000.0<<" seconds"<<endl;
+    cout<<"Fit took: "<<timeFitness.count()/1000.0<<" seconds"<<endl;
 
     return bestChromosome;
 }

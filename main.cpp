@@ -14,7 +14,7 @@ int main() {
     constexpr int tournamentSize = 7;
     constexpr double crossoverRate = 0.8;
     constexpr double mutationRate = 0.001;
-    constexpr int maximumGeneration = 5000;
+    constexpr int maximumGeneration = 50000;
     constexpr double probability = 0.95;
     
 
