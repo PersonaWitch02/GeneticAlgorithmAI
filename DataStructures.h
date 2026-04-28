@@ -11,7 +11,7 @@
 struct Class {
     int id;
     int enrollment;
-    std::string days; // e.g., "1010100"
+    std::string days;
     int startSlot;
     int length;
 };
@@ -23,7 +23,6 @@ struct Room {
 };
 
 struct Individual {
-    // This vector is your Chromosome: phi = [roomID1, roomID2, ...]
     std::vector<int> chromosome;
     double fitness;
 

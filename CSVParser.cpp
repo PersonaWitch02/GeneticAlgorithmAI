@@ -12,7 +12,7 @@ std::vector<Class> loadClasses(const std::string &filename) {
     }
 
     std::string line;
-    std::getline(file, line); // Skip Header: ClassID,Enrollment,Days,StartSlot,Length
+    std::getline(file, line); //skip Heder
     while (std::getline(file, line)) {
         if (line.empty()) continue;
         std::stringstream ss(line);
@@ -42,7 +42,7 @@ std::vector<Room> loadRooms(const std::string &filename) {
     std::string line;
     std::getline(file, line); // skip header
     while (std::getline(file, line)) {
-        if (line.empty()) continue; // skip trailing newlines
+        if (line.empty()) continue; //skip trailing newlines
         std::stringstream ss(line);
         std::string item;
         Room r;
@@ -52,7 +52,7 @@ std::vector<Room> loadRooms(const std::string &filename) {
         std::getline(ss, item, ',');
         r.capacity = std::stoi(item);
 
-        // Handle the building string with quotes: "450,406"
+        //Handle the building string with quotes
         if (ss.peek() == '"') {
             ss.get(); // remove first quote
             std::getline(ss, item, '"'); // read until second quote
