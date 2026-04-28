@@ -8,13 +8,18 @@
 #include "DataStructures.h"
 #include <vector>
 
-// Section 2: Chromosome Representation & Population Init
+void randomBaseline(std::vector<Individual> &population, int size,
+                          const std::vector<Class> &classes,
+                          const std::vector<Room> &rooms);
+
+void randomBaselineGeneration(int populationSize);
+
 void initializePopulation(std::vector<Individual>& population,
                           int size,
                           const std::vector<Class>& classes,
                           const std::vector<Room>& rooms);
 
-// Section 3: Fitness Function (Hard & Soft Constraints)
+
 void calculateFitness(Individual& ind,
                         const std::vector<Class>& classes,
                         const std::vector<Room>& rooms);
@@ -28,7 +33,7 @@ Individual geneticAlgo( int populationSize, int tournamentSize, double crossover
 // population = P, tournamentSize = k, probability= p
 Individual tournamentSelection(std::vector<Individual> &population, int tournamentSize, int tournamentProbability);
 
-void singlePointCrossOver(Individual &parent1, Individual &parent2, size_t length);
+void singlePointCrossOver(Individual &parent1, Individual &parent2, size_t length, double crossoverRate);
 
 void randomResettingMutation( std::vector<int> &chromosome, double mutationProbability, size_t roomsSize);
 

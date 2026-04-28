@@ -9,9 +9,12 @@
 
 #include "CSVParser.h"
 
+using namespace std;
 
-std::chrono::microseconds timeFitness(0);
-std::chrono::nanoseconds timeGA(0);
+long long iterations {0};
+int overlap = 0;
+int capacity = 0;
+int totalViolations = 0;
 
 bool isOverlapping(const Class &a, const Class &b) {
     bool dayOverlap = false;
@@ -25,30 +28,85 @@ bool isOverlapping(const Class &a, const Class &b) {
 
     int endA = a.startSlot + a.length;
     int endB = b.startSlot + b.length;
-    return (std::max(a.startSlot, b.startSlot) < std::min(endA, endB));
+    return (max(a.startSlot, b.startSlot) < min(endA, endB));
 }
 
-void initializePopulation(std::vector<Individual> &population, int size,
-                          const std::vector<Class> &classes,
-                          const std::vector<Room> &rooms) {
+void randomBaseline(vector<Individual> &population, int size,
+                          const vector<Class> &classes,
+                          const vector<Room> &rooms) {
     srand(42);
     for (int i = 0; i < size; ++i) {
         Individual ind(classes.size());
         for (size_t j = 0; j < classes.size(); ++j) {
-            // Store the INDEX (0 to rooms.size() - 1)
-            // This is safer than storing the ID
+
             ind.chromosome[j] = rand() % rooms.size();
         }
         population.push_back(ind);
     }
 }
 
-void calculateFitness(Individual &ind, const std::vector<Class> &classes, const std::vector<Room> &rooms) {
+void randomBaselineGeneration(int populationSize) {
+    vector<Class> classes = loadClasses("classes_demand.csv");
+    vector<Room> rooms = loadRooms("rooms_pool.csv");
+
+    vector<Individual> population;
+    initializePopulation(population, populationSize, classes, rooms);
+
+    cout<<"********Random Baseline******** \n";
+
+    //first 5 room assignments of the first individual
+    cout << "First 5 genes (Room IDs) of Individual 0: ";
+    for (int i = 0; i < 5; i++) {
+        cout << population[0].chromosome[i] << " ";
+    }
+    cout << endl;
+    int random = rand() % populationSize;
+    calculateFitness(population[random], classes, rooms);
+    cout << "Capacity violations: " << capacity << endl;
+    cout << "Overlap violations:  " << overlap << endl;
+    cout << "Hard violations: " << capacity+overlap << endl;
+    cout<<"**************************** \n";
+}
+
+//attempted heuristic initialization
+void initializePopulation(vector<Individual> &population, int size,
+                          const vector<Class> &classes,
+                          const vector<Room> &rooms) {
+    srand(42);
+
+    vector<int> classOrder(classes.size());
+    for (size_t i = 0; i < classes.size(); i++) classOrder[i] = i;
+    sort(classOrder.begin(), classOrder.end(), [&](int a, int b) {
+        return classes[a].enrollment > classes[b].enrollment;
+    });
+
+    vector<int> roomOrder(rooms.size());
+    for (size_t i = 0; i < rooms.size(); i++) roomOrder[i] = i;
+    sort(roomOrder.begin(), roomOrder.end(), [&](int a, int b) {
+        return rooms[a].capacity > rooms[b].capacity;
+    });
+
+    for (int i = 0; i < size; ++i) {
+        Individual ind(classes.size());
+        for (size_t j = 0; j < classes.size(); ++j) {
+            if (i == 0) {
+                ind.chromosome[classOrder[j]] = roomOrder[j % rooms.size()];
+            } else {
+                ind.chromosome[j] = rand() % rooms.size();
+            }
+        }
+        population.push_back(ind);
+    }
+}
+
+void calculateFitness(Individual &ind, const vector<Class> &classes, const vector<Room> &rooms) {
     int hardViolations = 0;
     double softViolations = 0.0;
     int numRooms = rooms.size();
 
-    std::vector<std::vector<int> > roomAssignments(numRooms);
+    iterations++;
+
+    vector<vector<int> > roomAssignments(numRooms);
 
     //HARD CONSTRAINT: Capacity
     for (size_t i = 0; i < classes.size(); i++) {
@@ -59,6 +117,9 @@ void calculateFitness(Individual &ind, const std::vector<Class> &classes, const 
         roomAssignments[roomIdx].push_back(i);
     }
 
+    capacity = hardViolations;
+
+    overlap = 0;
     //HARD CONSTRAINT: Overlap
     for (int r = 0; r < numRooms; r++) {
         const auto &assigned = roomAssignments[r];
@@ -66,6 +127,7 @@ void calculateFitness(Individual &ind, const std::vector<Class> &classes, const 
             for (size_t j = i + 1; j < assigned.size(); j++) {
                 if (isOverlapping(classes[assigned[i]], classes[assigned[j]])) {
                     hardViolations++;
+                    overlap++;
                 }
             }
         }
@@ -73,7 +135,7 @@ void calculateFitness(Individual &ind, const std::vector<Class> &classes, const 
 
     //soft constraint
     for (int day = 0; day < 7; day++) {
-        std::vector<int> classDays;
+        vector<int> classDays;
 
         for (size_t i = 0; i < classes.size(); i++) {
             if (classes[i].days[day] == '1') {
@@ -81,26 +143,28 @@ void calculateFitness(Individual &ind, const std::vector<Class> &classes, const 
             }
         }
 
-        std::ranges::sort(classDays, [&](int a, int b) {
+        sort(classDays.begin(), classDays.end(), [&](int a, int b) {
             return classes[a].startSlot < classes[b].startSlot;
         });
+
+
 
         for (size_t t = 0; t + 1 < classDays.size(); t++) {
             const Room &r1 = rooms[ind.chromosome[classDays[t]]];
             const Room &r2 = rooms[ind.chromosome[classDays[t + 1]]];
-            softViolations += classes[classDays[t]].enrollment * std::sqrt(
-                (r2.x - r1.x) * (r2.x - r1.x) + (r2.y - r1.y) * (r2.y - r1.y));
+            softViolations += classes[classDays[t]].enrollment * sqrt(((r2.x - r1.x) * (r2.x - r1.x)) + ((r2.y - r1.y) * (r2.y - r1.y)));
         }
     }
 
-    ind.fitness = 1.0 / (1.0 + (1000.0 * hardViolations) + (softViolations / 1000000.0));
-}
+    double ws = 1.0;
+    double wh = pow(10, 5);
 
+    ind.fitness = 1.0 / (1.0 + (wh * hardViolations) + (softViolations * ws));
+}
 
 //GA
 Individual geneticAlgo(int populationSize, int tournamentSize, double crossoverRate, double mutationRate,
                        int maximumGeneration, double probability) {
-    using namespace std;
 
     vector<Class> classes = loadClasses("classes_demand.csv");
     vector<Room> rooms = loadRooms("rooms_pool.csv");
@@ -117,66 +181,62 @@ Individual geneticAlgo(int populationSize, int tournamentSize, double crossoverR
     for (int i = 0; i < 5; i++) {
         cout << population[0].chromosome[i] << " ";
     }
-    cout << std::endl;
+    cout << endl;
 
     calculateFitness(population[0], classes, rooms);
 
     auto initialFitness = population[0].fitness;
-
     cout << "Initial Random Schedule Fitness: " << initialFitness << endl;
 
     vector<Individual> newPopulation;
+    vector<Individual> topFive;
 
-    const int tournamentProbability = probability * 1000;
-    const int mutationRateScaled = mutationRate * 1000;
+    const int tournamentProbability = static_cast<int>(probability * 1000);
+    const int mutationRateScaled =static_cast<int>(mutationRate * 1000);
 
     for (int i = 0; i < maximumGeneration; i++) {
         newPopulation.clear();
 
         //elitism
-        Individual best = population[0];
-        for (const Individual &ind: population) {
-            if (ind.fitness > best.fitness) {
-                best = ind;
-            }
-        }
-        newPopulation.push_back(best);
+        //sorting population so we can find the best fitness
+        sort(population.begin(), population.end(), [](const Individual &a, const Individual &b) {
+            return a.fitness > b.fitness;
+        });
 
-        auto startGA = chrono::steady_clock::now();
+        for (int j=0; j<5; j++) {
+            newPopulation.push_back(population[j]);
+        }
+
         while (newPopulation.size() < populationSize) {
             Individual parent1 = tournamentSelection(population, tournamentSize, tournamentProbability);
             Individual parent2 = tournamentSelection(population, tournamentSize, tournamentProbability);
 
-            if (static_cast<double>(rand() % 1000) / 1000.0 < crossoverRate) {
-                singlePointCrossOver(parent1, parent2, parent1.chromosome.size());
-            }
+            singlePointCrossOver(parent1, parent2, parent1.chromosome.size(), crossoverRate);
 
             randomResettingMutation(parent1.chromosome, mutationRateScaled, rooms.size());
             randomResettingMutation(parent2.chromosome, mutationRateScaled, rooms.size());
 
             newPopulation.push_back(parent1);
-            newPopulation.push_back(parent2);
+
+            //so that population size isnt exceeded
+            if (newPopulation.size() < populationSize) {
+                newPopulation.push_back(parent2);
+            }
         }
 
         population = newPopulation;
 
-        timeGA += chrono::duration_cast<chrono::nanoseconds>(chrono::steady_clock::now() - startGA);
-
-        auto startFit = chrono::steady_clock::now();
         for (Individual &individual: population) {
             calculateFitness(individual, classes, rooms);
         }
-        timeFitness += chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - startFit);
 
-        if (i % 500 == 0) {
+        if (i % 100 == 0) {
             Individual &topFitness = population[0];
             for (Individual &ind: population)
                 if (ind.fitness > topFitness.fitness) topFitness = ind;
-            cout << "Generation " << i << ", fitness: " << topFitness.fitness << endl;
+            cout << "Generation " << i << ", fitness: " << topFitness.fitness <<", violations: "<< capacity+overlap <<endl;
         }
     }
-
-    auto startGA = chrono::steady_clock::now();
 
     Individual bestChromosome = population[0];
     for (const Individual &individual: population) {
@@ -185,50 +245,21 @@ Individual geneticAlgo(int populationSize, int tournamentSize, double crossoverR
         }
     }
 
-    timeGA += chrono::duration_cast<chrono::nanoseconds>(chrono::steady_clock::now() - startGA);
-
-    cout << "Genetic Algorithm took: " << timeGA.count() / 1000000000.0 << " seconds" << endl;
-    cout << "Fitness took: " << timeFitness.count() / 1000000.0 << " seconds" << endl;
-
-    // Diagnostic: count violations in best solution
-    int hardViolations = 0;
-    int numRooms = rooms.size();
-
-    std::vector<std::vector<int> > roomAssignments(numRooms);
-    for (size_t i = 0; i < classes.size(); i++) {
-        int roomIdx = bestChromosome.chromosome[i];
-        if (classes[i].enrollment > rooms[roomIdx].capacity) {
-            hardViolations++;
-        }
-        roomAssignments[roomIdx].push_back(i);
-    }
-
-    int overlapViolations = 0;
-    int capacityViolations = hardViolations;
-    for (int r = 0; r < numRooms; r++) {
-        const auto &assigned = roomAssignments[r];
-        for (size_t i = 0; i < assigned.size(); i++)
-            for (size_t j = i + 1; j < assigned.size(); j++)
-                if (isOverlapping(classes[assigned[i]], classes[assigned[j]])) {
-                    overlapViolations++;
-                    hardViolations++;
-                }
-    }
-    cout << "Capacity violations: " << capacityViolations << endl;
-    cout << "Overlap violations:  " << overlapViolations << endl;
-    cout << "Total hard violations: " << hardViolations << endl;
-
+    calculateFitness(bestChromosome, classes, rooms);
+    cout << "Capacity violations: " << capacity << endl;
+    cout << "Overlap violations:  " << overlap << endl;
+    cout << "Hard violations: " << capacity+overlap << endl;
 
     cout<<"Difference between best and initial:"<< abs(bestChromosome.fitness - initialFitness)<<endl;
 
     return bestChromosome;
 }
 
-Individual tournamentSelection(std::vector<Individual> &population, const int tournamentSize,
+Individual tournamentSelection(vector<Individual> &population, const int tournamentSize,
                                const int tournamentProbability) {
     const size_t populationSize = population.size();
 
-    std::vector<Individual *> tournamentSet(tournamentSize);
+    vector<Individual *> tournamentSet(tournamentSize);
 
     //selecting randoms for tournament set
     for (int i = 0; i < tournamentSize; i++) {
@@ -238,7 +269,7 @@ Individual tournamentSelection(std::vector<Individual> &population, const int to
     }
 
     //sorting the tournament set, lamba allows custom sort
-    std::sort(tournamentSet.begin(), tournamentSet.end(), [](Individual *a, Individual *b) {
+    sort(tournamentSet.begin(), tournamentSet.end(), [](Individual *a, Individual *b) {
         return a->fitness > b->fitness;
     });
 
@@ -247,21 +278,23 @@ Individual tournamentSelection(std::vector<Individual> &population, const int to
     if (randomNumber < tournamentProbability) {
         return *tournamentSet[0];
     } else {
-        const int randomIndex = rand() % (tournamentSize - 1);
-        return *tournamentSet[randomIndex + 1];
+        const int randomIndex = (rand() % (tournamentSize));
+        return *tournamentSet[randomIndex];
     }
 }
 
 
-void singlePointCrossOver(Individual &parent1, Individual &parent2, const size_t length) {
+void singlePointCrossOver(Individual &parent1, Individual &parent2, const size_t length, double crossoverRate) {
     const int crossOverPoint = rand() % static_cast<int>(length);
 
-    for (int i = crossOverPoint; i < length; i++) {
-        std::swap(parent1.chromosome[i], parent2.chromosome[i]);
+    if (static_cast<double>(rand() % 1000) / 1000.0 <= crossoverRate) {
+        for (int i = crossOverPoint; i < length; i++) {
+            swap(parent1.chromosome[i], parent2.chromosome[i]);
+        }
     }
 }
 
-void randomResettingMutation(std::vector<int> &chromosome, const double mutationProbability, const size_t roomsSize) {
+void randomResettingMutation(vector<int> &chromosome, const double mutationProbability, const size_t roomsSize) {
     for (int i = 0; i < chromosome.size(); i++) {
         const double randomNumber = rand() % 1000;
 
