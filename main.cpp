@@ -12,12 +12,11 @@ int main() {
 
     constexpr int populationSize = 100;
     constexpr int tournamentSize = 7;
+    constexpr double tournamentRate = 0.95;
     constexpr double crossoverRate = 0.8;
     constexpr double mutationRate = 0.001;
-    constexpr int maximumGeneration = 50000; //actual maxGen used for report
-    // constexpr int maximumGeneration = 6000; // use for demo since its faster
-    // constexpr int maximumGeneration = 1000000;
-    constexpr double tournamentRate = 0.95;
+    // constexpr int maximumGeneration = 50000;
+    constexpr int maximumGeneration = 6000;
 
     randomBaselineGeneration(populationSize);
 
