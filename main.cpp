@@ -14,8 +14,8 @@ int main() {
     constexpr int tournamentSize = 7;
     constexpr double crossoverRate = 0.8;
     constexpr double mutationRate = 0.001;
-    // constexpr int maximumGeneration = 50000; //actual maxGen used for report
-    constexpr int maximumGeneration = 6000; // use for demo since its faster
+    constexpr int maximumGeneration = 50000; //actual maxGen used for report
+    // constexpr int maximumGeneration = 6000; // use for demo since its faster
     constexpr double probability = 0.95;
     
 

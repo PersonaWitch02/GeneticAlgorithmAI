@@ -18,6 +18,7 @@ long long iterations {0};
 int overlap = 0;
 int capacity = 0;
 int totalViolations = 0;
+int totalSoftViolations = 0;
 
 bool isOverlapping(const Class &a, const Class &b) {
     bool dayOverlap = false;
@@ -68,6 +69,7 @@ void randomBaselineGeneration(int populationSize) {
     cout << "Capacity violations: " << capacity << endl;
     cout << "Overlap violations:  " << overlap << endl;
     cout << "Hard violations: " << capacity+overlap << endl;
+    cout<< "Soft violations: " << totalSoftViolations << endl;
     cout << "Fitness: "<<population[random].fitness <<endl;
     cout<<"**************************** \n";
 }
@@ -157,6 +159,7 @@ void calculateFitness(Individual &ind, const vector<Class> &classes, const vecto
             const Room &r1 = rooms[ind.chromosome[classDays[t]]];
             const Room &r2 = rooms[ind.chromosome[classDays[t + 1]]];
             softViolations += classes[classDays[t]].enrollment * sqrt(((r2.x - r1.x) * (r2.x - r1.x)) + ((r2.y - r1.y) * (r2.y - r1.y)));
+            totalSoftViolations = softViolations;
         }
     }
 
