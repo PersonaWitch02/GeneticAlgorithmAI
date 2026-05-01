@@ -14,18 +14,20 @@ int main() {
     constexpr int tournamentSize = 7;
     constexpr double crossoverRate = 0.8;
     constexpr double mutationRate = 0.001;
-    // constexpr int maximumGeneration = 50000; //actual maxGen used for report
-    constexpr int maximumGeneration = 6000; // use for demo since its faster
-    constexpr double probability = 0.95;
-    
+    constexpr int maximumGeneration = 50000; //actual maxGen used for report
+    // constexpr int maximumGeneration = 6000; // use for demo since its faster
+    // constexpr int maximumGeneration = 1000000;
+    constexpr double tournamentRate = 0.95;
+
+    randomBaselineGeneration(populationSize);
 
     cout<< "tournament size: "<<tournamentSize<<endl;
     cout<< "crossover rate: "<<crossoverRate<<endl;
     cout<< "mutation rate: "<<mutationRate<<endl;
     cout<< "maximum generation: "<<maximumGeneration<<endl;
-    cout<< "probability: "<<probability<<endl;
+    cout<< "probability: "<<tournamentRate<<endl;
 
-    Individual best = geneticAlgo(populationSize, tournamentSize, crossoverRate, mutationRate, maximumGeneration, probability);
+    Individual best = geneticAlgo(populationSize, tournamentSize, crossoverRate, mutationRate, maximumGeneration, tournamentRate);
 
     cout<<"Best: "<< best.fitness<<endl;
 
@@ -33,8 +35,6 @@ int main() {
     //     cout<<best.chromosome[i]<<"  ";
     // }
     // cout<<endl;
-
-    randomBaselineGeneration(populationSize);
 
     const auto endtime = chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - startTime);
     cout<<"Time elapsed: "<<endtime.count()<< " seconds"<<endl;

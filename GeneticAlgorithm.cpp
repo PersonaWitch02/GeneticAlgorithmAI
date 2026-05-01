@@ -168,7 +168,7 @@ void calculateFitness(Individual &ind, const vector<Class> &classes, const vecto
 
 //GA
 Individual geneticAlgo(int populationSize, int tournamentSize, double crossoverRate, double mutationRate,
-                       int maximumGeneration, double probability) {
+                       int maximumGeneration, double tournamentRate) {
 
     vector<Class> classes = loadClasses("classes_demand.csv");
     vector<Room> rooms = loadRooms("rooms_pool.csv");
@@ -195,7 +195,7 @@ Individual geneticAlgo(int populationSize, int tournamentSize, double crossoverR
     vector<Individual> newPopulation;
     vector<Individual> topFive;
 
-    const int tournamentProbability = static_cast<int>(probability * 1000);
+    const int tournamentProbability = static_cast<int>(tournamentRate * 1000);
     const int mutationRateScaled =static_cast<int>(mutationRate * 1000);
 
     for (int i = 0; i < maximumGeneration; i++) {

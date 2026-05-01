@@ -28,7 +28,7 @@ bool isOverlapping(const Class& a, const Class& b);
 
 
 //Genetic Algo using tournament selection and random resetting mutation
-Individual geneticAlgo( int populationSize, int tournamentSize, double crossoverRate, double mutationRate, int maximumGeneration, double probability);
+Individual geneticAlgo( int populationSize, int tournamentSize, double crossoverRate, double mutationRate, int maximumGeneration, double tournamentRate);
 
 // population = P, tournamentSize = k, probability= p
 Individual tournamentSelection(std::vector<Individual> &population, int tournamentSize, int tournamentProbability);
