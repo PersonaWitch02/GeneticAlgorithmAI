@@ -27,14 +27,10 @@ int main() {
     cout<< "maximum generation: "<<maximumGeneration<<endl;
     cout<< "probability: "<<tournamentRate<<endl;
 
+    //return best Individual fom GA
     Individual best = geneticAlgo(populationSize, tournamentSize, crossoverRate, mutationRate, maximumGeneration, tournamentRate);
 
     cout<<"Best: "<< best.fitness<<endl;
-
-    // for (int i=0; i<best.chromosome.size(); i++) {
-    //     cout<<best.chromosome[i]<<"  ";
-    // }
-    // cout<<endl;
 
     const auto endtime = chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - startTime);
     cout<<"Time elapsed: "<<endtime.count()<< " seconds"<<endl;
